@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สินค้า — FORME</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="announcement">COMPLIMENTARY SHIPPING ON ORDERS OVER ฿2,500</div>
+  <header class="site-header">
+    <a class="logo" href="index.html">FORME<span>.</span></a>
+    <nav class="nav-links"><a href="index.html">หน้าแรก</a><a class="active" href="shop.html">สินค้า</a><a href="index.html#story">เกี่ยวกับเรา</a></nav>
+    <div class="nav-actions"><a class="cart-link" href="cart.html">ตะกร้า <span class="cart-count">0</span></a><button class="menu-toggle" aria-label="เปิดเมนู">☰</button></div>
+  </header>
+  <main class="shop-main">
+    <div class="shop-intro"><div class="eyebrow">THE FORME SELECTION / 2026</div><h1>Find your<br><i>everyday form.</i></h1><p>ไอเทมเรียบง่ายที่พร้อมไปกับคุณในทุกวัน</p></div>
+    <section class="shop-toolbar">
+      <div class="filters"><button class="filter-btn selected" data-filter="all">ทั้งหมด <span id="allCount"></span></button><button class="filter-btn" data-filter="shoes">รองเท้า</button><button class="filter-btn" data-filter="clothes">เสื้อผ้า</button></div>
+      <div class="toolbar-right"><label for="sort">เรียงตาม</label><select id="sort"><option value="featured">แนะนำ</option><option value="low">ราคาต่ำไปสูง</option><option value="high">ราคาสูงไปต่ำ</option></select></div>
+    </section>
+    <div class="shop-layout">
+      <section class="product-grid shop-grid" id="shopProducts"></section>
+      <aside class="quick-view" id="quickView">
+        <button class="close-quick" id="closeQuick" aria-label="ปิด">×</button>
+        <div class="quick-canvas-wrap"><canvas id="product3d"></canvas><span class="canvas-hint">DRAG TO ROTATE · SCROLL TO ZOOM</span></div>
+        <div class="quick-info"><div class="eyebrow">3D PRODUCT VIEW</div><h3 id="quickName">FORME Runner 01</h3><p id="quickDesc">Clean shape. Everyday comfort.</p><strong id="quickPrice">฿1,890</strong><button class="button button-dark" id="quickAdd">เพิ่มลงตะกร้า <span>＋</span></button></div>
+      </aside>
+    </div>
+  </main>
+  <footer class="footer"><a class="logo" href="index.html">FORME<span>.</span></a><p>Everyday essentials. Thoughtfully selected.</p><div><a href="index.html">หน้าแรก</a><a href="cart.html">ตะกร้าสินค้า</a></div><small>© 2026 FORME STORE. DEMO WEBSITE.</small></footer>
+  <script src="store.js"></script>
+  <script type="module" src="three-scene.js"></script>
+  <script>
+    let filter = new URLSearchParams(location.search).get('category') || 'all';
+    let selectedProduct = FORME.products[0];
+    const grid=document.querySelector('#shopProducts');
+    function render(){
+      let list=FORME.products.filter(p=>filter==='all'||p.category===filter);
+      const sort=document.querySelector('#sort').value;
+      if(sort==='low')list.sort((a,b)=>a.price-b.price);
+      if(sort==='high')list.sort((a,b)=>b.price-a.price);
+      grid.innerHTML=list.map(p=>FORME.productCard(p,true)).join('');
+      document.querySelector('#allCount').textContent=FORME.products.length;
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('selected',b.dataset.filter===filter));
+    }
+    function openQuick(id){
+      selectedProduct=FORME.products.find(p=>p.id===id);
+      if(!selectedProduct)return;
+      document.querySelector('#quickName').textContent=selectedProduct.name;
+      document.querySelector('#quickDesc').textContent=selectedProduct.desc;
+      document.querySelector('#quickPrice').textContent=FORME.money(selectedProduct.price);
+      document.querySelector('#quickView').classList.add('open');
+      window.dispatchEvent(new CustomEvent('forme:show-product',{detail:selectedProduct}));
+    }
+    document.addEventListener('click',e=>{
+      const add=e.target.closest('[data-add]');
+      const view=e.target.closest('[data-view]');
+      if(add){FORME.addToCart(add.dataset.add);add.textContent='เพิ่มแล้ว ✓';setTimeout(()=>add.textContent='เพิ่มลงตะกร้า +',1000);}
+      if(view)openQuick(view.dataset.view);
+    });
+    document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;render();}));
+    document.querySelector('#sort').addEventListener('change',render);
+    document.querySelector('#closeQuick').addEventListener('click',()=>document.querySelector('#quickView').classList.remove('open'));
+    document.querySelector('#quickAdd').addEventListener('click',()=>{FORME.addToCart(selectedProduct.id);document.querySelector('#quickAdd').innerHTML='เพิ่มลงตะกร้าแล้ว ✓';});
+    FORME.updateCartCount();render();
+  </script>
+</body>
+</html>

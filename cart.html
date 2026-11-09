@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตะกร้าสินค้า — FORME</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="announcement">COMPLIMENTARY SHIPPING ON ORDERS OVER ฿2,500</div>
+  <header class="site-header">
+    <a class="logo" href="index.html">FORME<span>.</span></a>
+    <nav class="nav-links"><a href="index.html">หน้าแรก</a><a href="shop.html">สินค้า</a><a href="index.html#story">เกี่ยวกับเรา</a></nav>
+    <div class="nav-actions"><a class="cart-link active" href="cart.html">ตะกร้า <span class="cart-count">0</span></a><button class="menu-toggle" aria-label="เปิดเมนู">☰</button></div>
+  </header>
+  <main class="cart-main">
+    <div class="eyebrow">YOUR SELECTION / CHECKOUT</div><h1>ตะกร้าสินค้า<span>.</span></h1>
+    <div class="cart-layout">
+      <section class="cart-items" id="cartItems"></section>
+      <aside class="summary">
+        <div class="eyebrow">ORDER SUMMARY</div><h2>สรุปคำสั่งซื้อ</h2>
+        <div class="summary-line"><span>ยอดสินค้า</span><strong id="subtotal">฿0</strong></div>
+        <div class="summary-line"><span>ค่าจัดส่ง</span><strong id="shipping">฿0</strong></div>
+        <div class="summary-line total"><span>ยอดรวมสุทธิ</span><strong id="total">฿0</strong></div>
+        <p class="shipping-note">จัดส่งฟรีเมื่อซื้อครบ ฿2,500</p>
+        <form id="checkoutForm">
+          <label>ชื่อผู้รับ<input name="name" required placeholder="ชื่อ-นามสกุล"></label>
+          <label>เบอร์โทรศัพท์<input name="phone" required inputmode="tel" pattern="[0-9+ -]{9,15}" placeholder="08X-XXX-XXXX"></label>
+          <label>ที่อยู่จัดส่ง<textarea name="address" required rows="3" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"></textarea></label>
+          <label>วิธีชำระเงิน<select name="payment"><option>โอนเงินผ่านธนาคาร</option><option>เก็บเงินปลายทาง</option></select></label>
+          <button class="button button-dark checkout-btn" type="submit">ยืนยันคำสั่งซื้อ <span>↗</span></button>
+        </form>
+        <div class="demo-notice">* เว็บไซต์ตัวอย่างสำหรับทดลอง ระบบนี้ยังไม่เชื่อมต่อธนาคารหรือระบบขนส่งจริง</div>
+      </aside>
+    </div>
+    <div id="orderSuccess" class="success-panel" hidden><div class="success-icon">✓</div><div class="eyebrow">ORDER RECEIVED</div><h2>ขอบคุณสำหรับคำสั่งซื้อ</h2><p id="successText">เราได้รับข้อมูลคำสั่งซื้อทดลองของคุณแล้ว</p><a class="button button-dark" href="shop.html">เลือกซื้อสินค้าต่อ</a></div>
+  </main>
+  <footer class="footer"><a class="logo" href="index.html">FORME<span>.</span></a><p>Everyday essentials. Thoughtfully selected.</p><div><a href="index.html">หน้าแรก</a><a href="shop.html">สินค้า</a></div><small>© 2026 FORME STORE. DEMO WEBSITE.</small></footer>
+  <script src="store.js"></script>
+  <script>
+    const cartBox=document.querySelector('#cartItems');
+    function renderCart(){
+      const cart=FORME.getCart();
+      if(!cart.length){cartBox.innerHTML='<div class="empty-cart"><div class="empty-symbol">FORME.</div><h2>ยังไม่มีสินค้าในตะกร้า</h2><p>เลือกไอเทมที่ใช่ แล้วกลับมาชำระเงินที่นี่</p><a class="button button-dark" href="shop.html">เลือกชมสินค้า ↗</a></div>';}
+      else{
+        cartBox.innerHTML=cart.map(row=>{const p=FORME.products.find(x=>x.id===row.id);if(!p)return '';return `<article class="cart-row"><img src="${p.image}" alt="${p.name}"><div class="cart-row-info"><div class="eyebrow">${p.type}</div><h3>${p.name}</h3><p>${FORME.money(p.price)}</p><div class="qty-control"><button data-qty="${p.id}" data-step="-1" aria-label="ลดจำนวน">−</button><span>${row.qty}</span><button data-qty="${p.id}" data-step="1" aria-label="เพิ่มจำนวน">＋</button><button class="remove-btn" data-remove="${p.id}">ลบ</button></div></div><strong>${FORME.money(p.price*row.qty)}</strong></article>`}).join('');
+      }
+      const subtotal=FORME.subtotal(),shipping=subtotal===0||subtotal>=2500?0:60,total=subtotal+shipping;
+      document.querySelector('#subtotal').textContent=FORME.money(subtotal);
+      document.querySelector('#shipping').textContent=FORME.money(shipping);
+      document.querySelector('#total').textContent=FORME.money(total);
+      document.querySelector('.checkout-btn').disabled=!cart.length;
+      FORME.updateCartCount();
+    }
+    cartBox.addEventListener('click',e=>{
+      const q=e.target.closest('[data-qty]'),r=e.target.closest('[data-remove]');
+      if(q)FORME.changeQty(q.dataset.qty,Number(q.dataset.step));
+      if(r)FORME.removeFromCart(r.dataset.remove);
+      renderCart();
+    });
+    document.querySelector('#checkoutForm').addEventListener('submit',e=>{
+      e.preventDefault();if(!FORME.getCart().length)return;
+      const data=new FormData(e.target);const orderNo='FM'+Date.now().toString().slice(-7);
+      document.querySelector('#successText').textContent=`หมายเลขคำสั่งซื้อ ${orderNo} · ผู้รับ ${data.get('name')} · ยอดชำระ ${document.querySelector('#total').textContent} (ข้อมูลทดลอง)`;
+      localStorage.removeItem('forme-cart');document.querySelector('.cart-layout').hidden=true;document.querySelector('#orderSuccess').hidden=false;FORME.updateCartCount();
+    });
+    renderCart();
+  </script>
+</body>
+</html>
